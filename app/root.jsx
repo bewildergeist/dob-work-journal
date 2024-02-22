@@ -58,8 +58,8 @@ export default function App() {
         <header>
           <div className="flex items-center justify-between lg:border-b lg:border-gray-800 lg:pt-1 lg:pb-5">
             <p className="text-sm uppercase lg:text-lg">
-              <span className="text-gray-500">Sam</span>
-              <span className="font-semibold text-gray-200">Selikoff</span>
+              <span className="font-semibold text-gray-200">dob</span>
+              <span className="text-gray-500">ermann</span>
             </p>
 
             <div className="text-sm font-medium text-gray-500 hover:text-gray-200">
