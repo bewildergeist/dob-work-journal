@@ -36,6 +36,7 @@ module.exports = {
       ],
       rules: {
         "react/prop-types": "off", // Disable PropTypes validation
+        "react/no-unescaped-entities": ["error", { forbid: [">", "}"] }],
       },
       settings: {
         react: {
