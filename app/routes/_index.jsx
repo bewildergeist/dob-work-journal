@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import { format } from "date-fns";
 import mongoose from "mongoose";
 
@@ -19,7 +19,14 @@ export async function action({ request }) {
   });
 }
 
+export async function loader() {
+  const entries = await mongoose.models.Entry.find().exec();
+
+  return entries;
+}
+
 export default function Index() {
+  const entries = useLoaderData();
   const fetcher = useFetcher();
   const textareaRef = useRef(null);
 
@@ -111,6 +118,12 @@ export default function Index() {
           </fieldset>
         </fetcher.Form>
       </div>
+
+      {entries.map((entry) => (
+        <p key={entry._id}>
+          {entry.type} – {entry.text}
+        </p>
+      ))}
 
       <div className="mt-6">
         <p className="font-bold">
