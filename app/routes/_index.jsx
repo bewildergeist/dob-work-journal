@@ -1,10 +1,18 @@
 import { redirect } from "@remix-run/node";
 import { Form } from "@remix-run/react";
+import mongoose from "mongoose";
 
 export async function action({ request }) {
   let formData = await request.formData();
-  let data = Object.fromEntries(formData);
-  console.log(data);
+
+  // Mongoose will throw an error if the entry data is invalid (and we don't
+  // catch it here, so it will be caught by Remix's error boundary and displayed
+  // to the user — we can improve on that later)
+  await mongoose.models.Entry.create({
+    date: new Date(formData.get("date")),
+    type: formData.get("type"),
+    text: formData.get("text"),
+  });
 
   return redirect("/");
 }
