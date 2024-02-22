@@ -2,6 +2,7 @@ import { Link, useLoaderData } from "@remix-run/react";
 import { format, startOfWeek, parseISO } from "date-fns";
 import mongoose from "mongoose";
 import EntryForm from "~/components/entry-form";
+import { getSession } from "~/session.server";
 
 /* ACTION --------------------------------------------------------- */
 export async function action({ request }) {
@@ -21,7 +22,9 @@ export async function action({ request }) {
 }
 
 /* LOADER --------------------------------------------------------- */
-export async function loader() {
+export async function loader({ request }) {
+  let session = await getSession(request.headers.get("cookie"));
+
   // We're using `lean` here to get plain objects instead of Mongoose documents
   // so we can map over them:
   // https://mongoosejs.com/docs/api/query.html#Query.prototype.lean()
@@ -29,15 +32,18 @@ export async function loader() {
   // https://mongoosejs.com/docs/promises.html#should-you-use-exec-with-await
   const entries = await mongoose.models.Entry.find().lean().exec();
 
-  return entries.map((entry) => ({
-    ...entry,
-    date: entry.date.toISOString().substring(0, 10),
-  }));
+  return {
+    session: session.data,
+    entries: entries.map((entry) => ({
+      ...entry,
+      date: entry.date.toISOString().substring(0, 10),
+    })),
+  };
 }
 
 /* UI ------------------------------------------------------------- */
 export default function Index() {
-  const entries = useLoaderData();
+  const { session, entries } = useLoaderData();
 
   const entriesByWeek = entries.reduce((memo, entry) => {
     let sunday = startOfWeek(parseISO(entry.date));
@@ -64,10 +70,13 @@ export default function Index() {
 
   return (
     <div>
-      <div className="my-8 border p-3">
-        <p className="italic">Create a new entry</p>
-        <EntryForm />
-      </div>
+      {session.isAdmin && (
+        <div className="my-8 border p-3">
+          <p className="italic">Create a new entry</p>
+
+          <EntryForm />
+        </div>
+      )}
 
       <div className="mt-12 space-y-12">
         {weeks.map((week) => (
