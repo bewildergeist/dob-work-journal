@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { format } from "date-fns";
+import { format, startOfWeek, parseISO } from "date-fns";
 import mongoose from "mongoose";
 
 export async function action({ request }) {
@@ -20,9 +20,12 @@ export async function action({ request }) {
 }
 
 export async function loader() {
-  const entries = await mongoose.models.Entry.find().exec();
+  const entries = await mongoose.models.Entry.find().lean().exec();
 
-  return entries;
+  return entries.map((entry) => ({
+    ...entry,
+    date: entry.date.toISOString().substring(0, 10),
+  }));
 }
 
 export default function Index() {
@@ -32,6 +35,29 @@ export default function Index() {
 
   const isIdle = fetcher.state === "idle";
   const isInit = isIdle && fetcher.data == null;
+
+  const entriesByWeek = entries.reduce((memo, entry) => {
+    let sunday = startOfWeek(parseISO(entry.date));
+    let sundayString = format(sunday, "yyyy-MM-dd");
+
+    memo[sundayString] ||= [];
+    memo[sundayString].push(entry);
+
+    return memo;
+  }, {});
+
+  const weeks = Object.keys(entriesByWeek)
+    .sort((a, b) => a.localeCompare(b))
+    .map((dateString) => ({
+      dateString,
+      work: entriesByWeek[dateString].filter((entry) => entry.type === "work"),
+      learnings: entriesByWeek[dateString].filter(
+        (entry) => entry.type === "learning",
+      ),
+      interestingThings: entriesByWeek[dateString].filter(
+        (entry) => entry.type === "interesting-thing",
+      ),
+    }));
 
   // Clear the form and focus the textarea after a submission
   useEffect(() => {
@@ -119,40 +145,46 @@ export default function Index() {
         </fetcher.Form>
       </div>
 
-      {entries.map((entry) => (
-        <p key={entry._id}>
-          {entry.type} – {entry.text}
-        </p>
-      ))}
-
-      <div className="mt-6">
-        <p className="font-bold">
-          Week of February 27<sup>th</sup>
-        </p>
-
-        <div className="mt-3 space-y-4">
-          <div>
-            <p>Work</p>
-            <ul className="ml-8 list-disc">
-              <li>First item</li>
-              <li>Second item</li>
-            </ul>
+      <div className="mt-12 space-y-12">
+        {weeks.map((week) => (
+          <div key={week.dateString}>
+            <p className="font-bold">
+              Week of {format(parseISO(week.dateString), "MMMM do")}
+            </p>
+            <div className="mt-3 space-y-4">
+              {week.work.length > 0 && (
+                <div>
+                  <p>Work</p>
+                  <ul className="ml-8 list-disc">
+                    {week.work.map((entry) => (
+                      <li key={entry.id}>{entry.text}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {week.learnings.length > 0 && (
+                <div>
+                  <p>Learning</p>
+                  <ul className="ml-8 list-disc">
+                    {week.learnings.map((entry) => (
+                      <li key={entry.id}>{entry.text}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {week.interestingThings.length > 0 && (
+                <div>
+                  <p>Interesting things</p>
+                  <ul className="ml-8 list-disc">
+                    {week.interestingThings.map((entry) => (
+                      <li key={entry.id}>{entry.text}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <p>Learnings</p>
-            <ul className="ml-8 list-disc">
-              <li>First item</li>
-              <li>Second item</li>
-            </ul>
-          </div>
-          <div>
-            <p>Interesting things</p>
-            <ul className="ml-8 list-disc">
-              <li>First item</li>
-              <li>Second item</li>
-            </ul>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );
