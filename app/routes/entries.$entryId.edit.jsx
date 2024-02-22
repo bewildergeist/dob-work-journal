@@ -7,7 +7,10 @@ import { getSession } from "~/session.server";
 /* LOADER --------------------------------------------------------- */
 export async function loader({ params, request }) {
   if (typeof params.entryId !== "string") {
-    throw new Response("Not found", { status: 404 });
+    throw new Response("Not found", {
+      status: 404,
+      statusText: "Not found",
+    });
   }
 
   let entry = await mongoose.models.Entry.findById(params.entryId)
@@ -15,12 +18,18 @@ export async function loader({ params, request }) {
     .exec();
 
   if (!entry) {
-    throw new Response("Not found", { status: 404 });
+    throw new Response("Not found", {
+      status: 404,
+      statusText: "Not found",
+    });
   }
 
   const session = await getSession(request.headers.get("cookie"));
   if (!session.data.isAdmin) {
-    throw new Response("Not authenticated", { status: 401 });
+    throw new Response("Not authenticated", {
+      status: 401,
+      statusText: "Not authenticated",
+    });
   }
 
   return {
@@ -33,11 +42,17 @@ export async function loader({ params, request }) {
 export async function action({ request, params }) {
   const session = await getSession(request.headers.get("cookie"));
   if (!session.data.isAdmin) {
-    throw new Response("Not authenticated", { status: 401 });
+    throw new Response("Not authenticated", {
+      status: 401,
+      statusText: "Not authenticated",
+    });
   }
 
   if (typeof params.entryId !== "string") {
-    throw new Response("Not found", { status: 404 });
+    throw new Response("Not found", {
+      status: 404,
+      statusText: "Not found",
+    });
   }
 
   let formData = await request.formData();

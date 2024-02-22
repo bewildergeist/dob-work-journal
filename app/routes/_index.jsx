@@ -8,7 +8,10 @@ import { getSession } from "~/session.server";
 export async function action({ request }) {
   const session = await getSession(request.headers.get("cookie"));
   if (!session.data.isAdmin) {
-    throw new Response("Not authenticated", { status: 401 });
+    throw new Response("Not authenticated", {
+      status: 401,
+      statusText: "Not authenticated",
+    });
   }
 
   let formData = await request.formData();
