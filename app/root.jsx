@@ -1,20 +1,17 @@
 import {
   Links,
-  Link,
   LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
-import styles from "./tailwind.css";
 
-export const links = () => [
-  {
-    rel: "stylesheet",
-    href: styles,
-  },
-];
+import stylesheet from "~/tailwind.css";
+
+export function links() {
+  return [{ rel: "stylesheet", href: stylesheet }];
+}
 
 export function meta() {
   return [{ title: "Work Journal" }];

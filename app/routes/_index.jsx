@@ -1,20 +1,40 @@
-import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import mongoose from "mongoose";
-
-export async function loader() {
-  const entries = await mongoose.models.Entry.find({});
-  return json({ entries });
-}
-
 export default function Index() {
-  const { entries } = useLoaderData();
-
   return (
-    <div className="p-8 text-slate-50 bg-slate-900">
-      <code>
-        <pre className="animate-pulse">{JSON.stringify(entries, null, 2)}</pre>
-      </code>
+    <div className="p-10">
+      <h1 className="text-5xl">Work Journal</h1>
+      <p className="mt-2 text-lg text-gray-400">
+        Learnings and doings. Updated weekly.
+      </p>
+
+      <div className="mt-6">
+        <p className="font-bold">
+          Week of February 20<sup>th</sup>
+        </p>
+
+        <div className="mt-3 space-y-4">
+          <div>
+            <p>Work</p>
+            <ul className="ml-8 list-disc">
+              <li>First item</li>
+              <li>Second item</li>
+            </ul>
+          </div>
+          <div>
+            <p>Learnings</p>
+            <ul className="ml-8 list-disc">
+              <li>First item</li>
+              <li>Second item</li>
+            </ul>
+          </div>
+          <div>
+            <p>Interesting things</p>
+            <ul className="ml-8 list-disc">
+              <li>First item</li>
+              <li>Second item</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
