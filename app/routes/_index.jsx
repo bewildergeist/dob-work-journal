@@ -3,6 +3,7 @@ import { format, startOfWeek, parseISO } from "date-fns";
 import mongoose from "mongoose";
 import EntryForm from "~/components/entry-form";
 
+/* ACTION --------------------------------------------------------- */
 export async function action({ request }) {
   let formData = await request.formData();
 
@@ -19,6 +20,7 @@ export async function action({ request }) {
   });
 }
 
+/* LOADER --------------------------------------------------------- */
 export async function loader() {
   // We're using `lean` here to get plain objects instead of Mongoose documents
   // so we can map over them:
@@ -33,6 +35,7 @@ export async function loader() {
   }));
 }
 
+/* UI ------------------------------------------------------------- */
 export default function Index() {
   const entries = useLoaderData();
 
