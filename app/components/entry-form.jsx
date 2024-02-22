@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 export default function EntryForm({ entry }) {
   let fetcher = useFetcher();
-  let textareaRef = useRef < HTMLTextAreaElement > null;
+  let textareaRef = useRef(null);
 
   useEffect(() => {
     if (
