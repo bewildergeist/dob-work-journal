@@ -5,17 +5,15 @@ import { useEffect, useRef } from "react";
 export default function EntryForm({ entry }) {
   let fetcher = useFetcher();
   let textareaRef = useRef(null);
+  const isIdle = fetcher.state === "idle";
+  const isInit = isIdle && fetcher.data == null;
 
   useEffect(() => {
-    if (
-      fetcher.type !== "init" &&
-      fetcher.state === "idle" &&
-      textareaRef.current
-    ) {
+    if (!isInit && isIdle && textareaRef.current) {
       textareaRef.current.value = "";
       textareaRef.current.focus();
     }
-  }, [fetcher.state, fetcher.type, textareaRef]);
+  }, [isInit, isIdle]);
 
   return (
     <fetcher.Form method="post" className="mt-4">
