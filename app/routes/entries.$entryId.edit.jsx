@@ -2,9 +2,10 @@ import { redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
 import mongoose from "mongoose";
 import EntryForm from "~/components/entry-form";
+import { getSession } from "~/session.server";
 
 /* LOADER --------------------------------------------------------- */
-export async function loader({ params }) {
+export async function loader({ params, request }) {
   if (typeof params.entryId !== "string") {
     throw new Response("Not found", { status: 404 });
   }
@@ -15,6 +16,11 @@ export async function loader({ params }) {
 
   if (!entry) {
     throw new Response("Not found", { status: 404 });
+  }
+
+  const session = await getSession(request.headers.get("cookie"));
+  if (!session.data.isAdmin) {
+    throw new Response("Not authenticated", { status: 401 });
   }
 
   return {
