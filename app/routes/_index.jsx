@@ -1,7 +1,7 @@
-import { useEffect, useRef } from "react";
-import { Link, useFetcher, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData } from "@remix-run/react";
 import { format, startOfWeek, parseISO } from "date-fns";
 import mongoose from "mongoose";
+import EntryForm from "~/components/entry-form";
 
 export async function action({ request }) {
   let formData = await request.formData();
@@ -20,6 +20,11 @@ export async function action({ request }) {
 }
 
 export async function loader() {
+  // We're using `lean` here to get plain objects instead of Mongoose documents
+  // so we can map over them:
+  // https://mongoosejs.com/docs/api/query.html#Query.prototype.lean()
+  // We're calling `exec` to execute the query and return a promise:
+  // https://mongoosejs.com/docs/promises.html#should-you-use-exec-with-await
   const entries = await mongoose.models.Entry.find().lean().exec();
 
   return entries.map((entry) => ({
@@ -30,11 +35,6 @@ export async function loader() {
 
 export default function Index() {
   const entries = useLoaderData();
-  const fetcher = useFetcher();
-  const textareaRef = useRef(null);
-
-  const isIdle = fetcher.state === "idle";
-  const isInit = isIdle && fetcher.data == null;
 
   const entriesByWeek = entries.reduce((memo, entry) => {
     let sunday = startOfWeek(parseISO(entry.date));
@@ -59,85 +59,11 @@ export default function Index() {
       ),
     }));
 
-  // Clear the form and focus the textarea after a submission
-  useEffect(() => {
-    if (!isInit && isIdle && textareaRef.current) {
-      textareaRef.current.value = "";
-      textareaRef.current.focus();
-    }
-  }, [isInit, isIdle]);
-
   return (
     <div>
       <div className="my-8 border p-3">
         <p className="italic">Create a new entry</p>
-
-        <fetcher.Form method="post" className="mt-2">
-          <fieldset
-            className="disabled:opacity-70"
-            disabled={fetcher.state === "submitting"}
-          >
-            <div>
-              <div>
-                <input
-                  type="date"
-                  name="date"
-                  required
-                  className="text-gray-900"
-                  defaultValue={format(new Date(), "yyyy-MM-dd")}
-                />
-              </div>
-              <div className="mt-4 space-x-4">
-                <label className="inline-block">
-                  <input
-                    required
-                    type="radio"
-                    defaultChecked
-                    className="mr-1"
-                    name="type"
-                    value="work"
-                  />
-                  Work
-                </label>
-                <label className="inline-block">
-                  <input
-                    type="radio"
-                    className="mr-1"
-                    name="type"
-                    value="learning"
-                  />
-                  Learning
-                </label>
-                <label className="inline-block">
-                  <input
-                    type="radio"
-                    className="mr-1"
-                    name="type"
-                    value="interesting-thing"
-                  />
-                  Interesting thing
-                </label>
-              </div>
-            </div>
-            <div className="mt-4">
-              <textarea
-                ref={textareaRef}
-                placeholder="Type your entry..."
-                name="text"
-                className="w-full text-gray-700"
-                required
-              />
-            </div>
-            <div className="mt-2 text-right">
-              <button
-                type="submit"
-                className="bg-blue-500 px-4 py-1 font-semibold text-white"
-              >
-                {fetcher.state === "submitting" ? "Saving..." : "Save"}
-              </button>
-            </div>
-          </fieldset>
-        </fetcher.Form>
+        <EntryForm />
       </div>
 
       <div className="mt-12 space-y-12">
