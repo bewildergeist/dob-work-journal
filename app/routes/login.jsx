@@ -1,5 +1,5 @@
-import { redirect } from "@remix-run/node";
-import { Form, useLoaderData } from "@remix-run/react";
+import { json, redirect } from "@remix-run/node";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { commitSession, getSession } from "~/session.server";
 
 /* ACTION --------------------------------------------------------- */
@@ -17,7 +17,17 @@ export async function action({ request }) {
       },
     });
   } else {
-    return null;
+    let error;
+
+    if (!email) {
+      error = "Email is required.";
+    } else if (!password) {
+      error = "Password is required.";
+    } else {
+      error = "Invalid login.";
+    }
+
+    return json({ error }, 401);
   }
 }
 
@@ -30,7 +40,8 @@ export async function loader({ request }) {
 
 /* UI ------------------------------------------------------------- */
 export default function LoginPage() {
-  let data = useLoaderData();
+  const data = useLoaderData();
+  const actionData = useActionData();
 
   return (
     <div className="mt-8">
@@ -42,17 +53,22 @@ export default function LoginPage() {
             className="text-gray-900"
             type="email"
             name="email"
+            required
             placeholder="Email"
           />
           <input
             className="text-gray-900"
             type="password"
             name="password"
+            required
             placeholder="Password"
           />
           <button className="bg-blue-500 px-3 py-2 font-medium text-white">
             Log in
           </button>
+          {actionData?.error && (
+            <p className="mt-4 font-medium text-red-500">{actionData.error}</p>
+          )}
         </Form>
       )}
     </div>
