@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { Link, useLoaderData } from "@remix-run/react";
 import { format, parseISO, startOfWeek } from "date-fns";
+import mongoose from "mongoose";
 import EntryForm from "~/components/entry-form";
 import { getSession } from "~/session";
 
@@ -12,8 +12,6 @@ export async function action({ request }) {
       statusText: "Not authenticated",
     });
   }
-
-  let db = new PrismaClient();
 
   let formData = await request.formData();
   let { date, type, text } = Object.fromEntries(formData);
@@ -28,20 +26,24 @@ export async function action({ request }) {
     throw new Error("Bad request");
   }
 
-  return db.entry.create({
-    data: {
-      date: new Date(date),
-      type: type,
-      text: text,
-    },
+  const entry = new mongoose.models.Entry({
+    date: new Date(date),
+    type,
+    text,
   });
+
+  await entry.save();
+
+  return null;
 }
 
 export async function loader({ request }) {
   let session = await getSession(request.headers.get("cookie"));
 
-  let db = new PrismaClient();
-  let entries = await db.entry.findMany({ orderBy: { date: "desc" } });
+  let entries = await mongoose.models.Entry.find({})
+    .sort({ date: -1 })
+    .lean()
+    .exec();
 
   return {
     session: session.data,
@@ -121,7 +123,7 @@ function EntryList({ entries, label }) {
 
       <ul className="mt-4 space-y-6">
         {entries.map((entry) => (
-          <EntryListItem key={entry.id} entry={entry} />
+          <EntryListItem key={entry._id} entry={entry} />
         ))}
       </ul>
     </div>
@@ -137,7 +139,7 @@ function EntryListItem({ entry }) {
 
       {session.isAdmin && (
         <Link
-          to={`/entries/${entry.id}/edit`}
+          to={`/entries/${entry._id}/edit`}
           className="ml-2 text-sky-500 opacity-0 group-hover:opacity-100"
         >
           Edit

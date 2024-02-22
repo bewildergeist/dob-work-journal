@@ -1,6 +1,6 @@
-import { PrismaClient } from "@prisma/client";
 import { redirect } from "@remix-run/node";
 import { Form, useLoaderData } from "@remix-run/react";
+import mongoose from "mongoose";
 import EntryForm from "~/components/entry-form";
 import { getSession } from "~/session";
 
@@ -9,8 +9,9 @@ export async function loader({ params, request }) {
     throw new Response("Not found", { status: 404, statusText: "Not found" });
   }
 
-  let db = new PrismaClient();
-  let entry = await db.entry.findUnique({ where: { id: +params.entryId } });
+  let entry = await mongoose.models.Entry.findById(params.entryId)
+    .lean()
+    .exec();
 
   if (!entry) {
     throw new Response("Not found", { status: 404, statusText: "Not found" });
@@ -43,8 +44,6 @@ export async function action({ request, params }) {
     throw new Response("Not found", { status: 404, statusText: "Not found" });
   }
 
-  let db = new PrismaClient();
-
   let formData = await request.formData();
 
   let { _action, date, type, text } = Object.fromEntries(formData);
@@ -52,11 +51,7 @@ export async function action({ request, params }) {
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   if (_action === "delete") {
-    await db.entry.delete({
-      where: {
-        id: +params.entryId,
-      },
-    });
+    await mongoose.models.Entry.findByIdAndDelete(params.entryId);
 
     return redirect("/");
   } else {
@@ -68,16 +63,13 @@ export async function action({ request, params }) {
       throw new Error("Bad request");
     }
 
-    await db.entry.update({
-      where: {
-        id: +params.entryId,
-      },
-      data: {
-        date: new Date(date),
-        type: type,
-        text: text,
-      },
-    });
+    const entry = await mongoose.models.Entry.findById(params.entryId);
+
+    entry.date = new Date(date);
+    entry.type = type;
+    entry.text = text;
+
+    await entry.save();
 
     return redirect("/");
   }
