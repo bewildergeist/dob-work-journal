@@ -31,6 +31,11 @@ export async function loader({ params, request }) {
 
 /* ACTION --------------------------------------------------------- */
 export async function action({ request, params }) {
+  const session = await getSession(request.headers.get("cookie"));
+  if (!session.data.isAdmin) {
+    throw new Response("Not authenticated", { status: 401 });
+  }
+
   if (typeof params.entryId !== "string") {
     throw new Response("Not found", { status: 404 });
   }
