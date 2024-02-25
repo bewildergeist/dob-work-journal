@@ -17,7 +17,10 @@ import stylesheet from "~/tailwind.css";
 import { destroySession, getSession } from "./session.server";
 
 export function links() {
-  return [{ rel: "stylesheet", href: stylesheet }];
+  return [
+    { rel: "stylesheet", href: stylesheet },
+    { rel: "stylesheet", href: "/fonts/inter/inter.css" },
+  ];
 }
 
 export function meta() {
@@ -55,23 +58,35 @@ export default function App() {
         <Links />
       </head>
       <body>
-        <div className="p-10">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-5xl">Work Journal</h1>
-              <p className="mt-2 text-lg text-gray-400">
-                Learnings and doings. Updated weekly.
+        <div>
+          <header>
+            <div className="flex justify-between text-sm">
+              <p className="uppercase">
+                <span className="text-gray-500">Sam</span>
+                <span className="font-semibold text-gray-200">Selikoff</span>
               </p>
-            </div>
 
-            {session.isAdmin ? (
-              <Form method="post">
-                <button>Logout</button>
-              </Form>
-            ) : (
-              <Link to="/login">Login</Link>
-            )}
-          </div>
+              <div className="text-gray-500">
+                {session.isAdmin ? (
+                  <Form method="post">
+                    <button>Logout</button>
+                  </Form>
+                ) : (
+                  <Link to="/login">Log in</Link>
+                )}
+              </div>
+            </div>
+            <div className="my-20">
+              <div className="text-center">
+                <h1 className="text-5xl font-semibold tracking-tighter text-white">
+                  <Link to="/">Work Journal</Link>
+                </h1>
+                <p className="mt-2 tracking-tight text-gray-500">
+                  Doings and learnings. Updated weekly.
+                </p>
+              </div>
+            </div>
+          </header>
 
           <Outlet />
         </div>
